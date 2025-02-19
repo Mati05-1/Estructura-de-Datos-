@@ -1,0 +1,52 @@
+import time
+
+class Stack:
+    def __init__(self):
+        self.items = []
+
+    def push(self, item):
+        self.items.append(item)
+
+    def pop(self):
+        if not self.is_empty():
+            return self.items.pop()
+        return None  # Si la pila está vacía
+
+    def is_empty(self):
+        return len(self.items) == 0
+
+    def size(self):
+        return len(self.items)
+
+# Función para encontrar un valor de n que tome al menos 5 segundos en insertar
+def find_n_for_5_seconds():
+    n = 1000
+    while True:
+        stack = Stack()
+        start_time = time.time()
+        for i in range(n):
+            stack.push(i)
+        elapsed_time = time.time() - start_time
+        if elapsed_time >= 5:  # Si toma 5 segundos o más, detenemos
+            break
+        n += 1000  # Aumentamos progresivamente
+    return n
+
+# Encontrar n óptimo
+n = find_n_for_5_seconds()
+print(f"Valor de n encontrado: {n}")
+
+# Crear cinco stacks con tamaños n, 2n, 3n, 4n, 5n
+sizes = [n, 2*n, 3*n, 4*n, 5*n]
+stacks = {}
+
+for size in sizes:
+    stack = Stack()
+    for i in range(size):
+        stack.push(i)
+    stacks[size] = stack
+
+print("Stacks instanciados con los tamaños correspondientes.")
+
+
+
