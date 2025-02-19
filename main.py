@@ -6,6 +6,7 @@ import cProfile
 import pstats
 import io
 import matplotlib.pyplot as plt
+from line_profiler import LineProfiler
 
 class CustomQueue:
     def __init__(self):
@@ -16,36 +17,48 @@ class CustomQueue:
         start_time = time.time()
         for i in range(n):
             self.q.put(i)
-            time.sleep(max(1/n, 0.01))  # Control del tiempo mínimo
+            time.sleep(max(1/n, 0.01))  
         end_time = time.time()
         return end_time - start_time
     
+    def profile_and_save(self, pr, filename):
+        """Guarda el resultado del perfilador en un archivo de texto."""
+        with open(filename, "w") as f:
+            ps = pstats.Stats(pr, stream=f).sort_stats(pstats.SortKey.TIME)
+            ps.print_stats()
+    
+    def line_profile_and_save(self, lp, filename):
+        """Guarda el resultado de line_profiler en un archivo de texto."""
+        with open(filename, "w") as f:
+            lp.print_stats(stream=f)
+
     @memory_profiler.profile
-    def linear_search(self, target):
-        """Búsqueda lineal manual en la cola."""
+    def linear_search(self, target, filename):
+        """Búsqueda lineal manual en la cola, guardando el perfil en un archivo."""
         pr = cProfile.Profile()
         pr.enable()
         
-        temp_list = list(self.q.queue)  # Convertimos la cola en una lista temporal
-        for item in temp_list:
-            if item == target:
-                pr.disable()
-                s = io.StringIO()
-                ps = pstats.Stats(pr, stream=s).sort_stats(pstats.SortKey.TIME)
-                ps.print_stats()
-                print(s.getvalue())  # Muestra el perfil en la terminal
-                return True
+        lp = LineProfiler()
+        lp_wrapper = lp(self._linear_search_impl)
+        found = lp_wrapper(target)
         
         pr.disable()
-        s = io.StringIO()
-        ps = pstats.Stats(pr, stream=s).sort_stats(pstats.SortKey.TIME)
-        ps.print_stats()
-        print(s.getvalue())  # Muestra el perfil en la terminal
+        self.profile_and_save(pr, filename)
+        self.line_profile_and_save(lp, filename.replace(".txt", "_line.txt"))
+        return found
+
+    def _linear_search_impl(self, target):
+        """Implementación interna de búsqueda lineal para line_profiler."""
+        temp_list = list(self.q.queue)
+        for item in temp_list:
+            time.sleep(0.0001)  
+            if item == target:
+                return True
         return False
     
     @memory_profiler.profile
-    def delete_element(self):
-        """Elimina un elemento de la cola (dequeue)."""
+    def delete_element(self, filename):
+        """Elimina un elemento de la cola (dequeue) y guarda el perfil en un archivo."""
         pr = cProfile.Profile()
         pr.enable()
         
@@ -54,14 +67,11 @@ class CustomQueue:
             result = self.q.get()
         
         pr.disable()
-        s = io.StringIO()
-        ps = pstats.Stats(pr, stream=s).sort_stats(pstats.SortKey.TIME)
-        ps.print_stats()
-        print(s.getvalue())  # Muestra el perfil en la terminal
+        self.profile_and_save(pr, filename)
         return result
 
-# Prueba con diferentes tamaños
-sizes = [10, 20, 30, 40, 50]  # Tamaños de las colas
+
+sizes = [1000, 2000, 3000, 4000, 5000]  
 search_times = []
 delete_times = []
 
@@ -69,17 +79,17 @@ for size in sizes:
     q = CustomQueue()
     q.insert_elements(size)
 
-    # Medir tiempo de búsqueda
+    
     start_time = time.time()
-    q.linear_search(-1)  # Buscando un número que NO está
+    q.linear_search(-1, f"profile_search_{size}.txt")  
     search_times.append(time.time() - start_time)
 
-    # Medir tiempo de eliminación
+   
     start_time = time.time()
-    q.delete_element()
+    q.delete_element(f"profile_delete_{size}.txt")
     delete_times.append(time.time() - start_time)
 
-# Guardar en DataFrame
+
 df = pd.DataFrame({'Tamaño': sizes, 'Tiempo_Search': search_times, 'Tiempo_Delete': delete_times})
 print(df)
 
