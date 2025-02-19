@@ -18,6 +18,13 @@ class Stack:
     def size(self):
         return len(self.items)
 
+    def search(self, key):
+        """Busca un elemento en la pila y devuelve True si lo encuentra, False si no."""
+        for item in self.items:
+            if item == key:
+                return True
+        return False
+
 # Función para encontrar un valor de n que tome al menos 5 segundos en insertar
 def find_n_for_5_seconds():
     n = 1000
@@ -27,9 +34,9 @@ def find_n_for_5_seconds():
         for i in range(n):
             stack.push(i)
         elapsed_time = time.time() - start_time
-        if elapsed_time >= 5:  # Si toma 5 segundos o más, detenemos
+        if elapsed_time >= 5:
             break
-        n += 1000  # Aumentamos progresivamente
+        n += 1000
     return n
 
 # Encontrar n óptimo
@@ -47,6 +54,12 @@ for size in sizes:
     stacks[size] = stack
 
 print("Stacks instanciados con los tamaños correspondientes.")
+
+# 🔹 Probar el método search
+test_stack = stacks[n]
+print("Prueba de búsqueda:")
+print(f"¿Existe el elemento {n//2}? ->", test_stack.search(n//2))  # Debería ser True
+print(f"¿Existe el elemento -1? ->", test_stack.search(-1))  # Debería ser False
 
 
 
