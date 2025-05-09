@@ -1,7 +1,6 @@
-#Project Name
+##Trabajos de Estructura de Datos
 
-Trabajos de Estructura de Datos
 
-## Table of Contents
+# Trabajos
 
 - [Introduction to complexity](#introduction to complexity)
