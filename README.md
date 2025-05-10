@@ -1,4 +1,4 @@
-Trabajos de Estructura de Datos 2025
+##Trabajos de Estructura de Datos 2025
 
 
 # Trabajos
